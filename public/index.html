@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WGG Ticket Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <div class="bg-glow bg-glow-1"></div>
+  <div class="bg-glow bg-glow-2"></div>
+
+  <!-- Login -->
+  <div id="login-screen" class="screen">
+    <div class="glass-card login-card">
+      <div class="brand">
+        <div class="brand-icon">◈</div>
+        <h1>WGG Ticket</h1>
+        <p>Control panel for panels, embeds & commands</p>
+      </div>
+      <form id="login-form">
+        <label>Dashboard Password</label>
+        <input type="password" id="login-password" placeholder="Enter password" required />
+        <button type="submit" class="btn btn-primary">Access Dashboard</button>
+        <p id="login-error" class="error-text hidden">Invalid password</p>
+      </form>
+    </div>
+  </div>
+
+  <!-- Dashboard -->
+  <div id="dashboard-screen" class="screen hidden">
+    <header class="topbar glass-bar">
+      <div class="topbar-left">
+        <span class="brand-mini">◈ WGG Ticket</span>
+        <nav class="tabs">
+          <button class="tab active" data-tab="panels">Panels</button>
+          <button class="tab" data-tab="commands">Commands</button>
+          <button class="tab" data-tab="settings">Settings</button>
+        </nav>
+      </div>
+      <div class="topbar-right">
+        <button id="theme-toggle" class="icon-btn" title="Toggle theme">☀</button>
+        <button id="logout-btn" class="btn btn-ghost">Logout</button>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <!-- Panels Tab -->
+      <section id="tab-panels" class="tab-content active">
+        <div class="section-header">
+          <div>
+            <h2>Ticket Panels</h2>
+            <p>Each panel = one embed + one button. Deploy with <code>/panel send</code> in Discord.</p>
+          </div>
+          <button id="add-panel-btn" class="btn btn-primary">+ New Panel</button>
+        </div>
+        <div id="panels-grid" class="grid"></div>
+      </section>
+
+      <!-- Commands Tab -->
+      <section id="tab-commands" class="tab-content">
+        <div class="section-header">
+          <div>
+            <h2>Custom Commands</h2>
+            <p>Slash commands like <code>/thankyou</code> that send embed messages.</p>
+          </div>
+          <button id="add-command-btn" class="btn btn-primary">+ New Command</button>
+        </div>
+        <div id="commands-grid" class="grid"></div>
+      </section>
+
+      <!-- Settings Tab -->
+      <section id="tab-settings" class="tab-content">
+        <div class="glass-card settings-card">
+          <h2>Ticket Counter</h2>
+          <p>Next ticket will be <strong id="next-ticket-preview">wgg-ticket-0001</strong></p>
+          <div class="form-row">
+            <label>Current counter</label>
+            <input type="number" id="ticket-counter" min="0" />
+          </div>
+          <button id="save-counter-btn" class="btn btn-primary">Save Counter</button>
+        </div>
+        <div class="glass-card settings-card">
+          <h2>Discord Setup</h2>
+          <ul class="setup-list">
+            <li>Deploy a panel: <code>/panel send panel:&lt;id&gt;</code></li>
+            <li>Deploy all panels: <code>/panel send-all</code></li>
+            <li>List panels: <code>/panel list</code></li>
+            <li>Ticket channels: <code>wgg-ticket-0001</code>, <code>wgg-ticket-0002</code>, etc.</li>
+          </ul>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Editor Modal -->
+  <div id="modal" class="modal hidden">
+    <div class="modal-backdrop"></div>
+    <div class="glass-card modal-card">
+      <div class="modal-header">
+        <h3 id="modal-title">Edit</h3>
+        <button id="modal-close" class="icon-btn">✕</button>
+      </div>
+      <div id="modal-body" class="modal-body"></div>
+      <div class="modal-footer">
+        <button id="modal-delete" class="btn btn-danger hidden">Delete</button>
+        <div class="spacer"></div>
+        <button id="modal-cancel" class="btn btn-ghost">Cancel</button>
+        <button id="modal-save" class="btn btn-primary">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+  <script src="/js/app.js"></script>
+</body>
+</html>

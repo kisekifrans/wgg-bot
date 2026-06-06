@@ -1,0 +1,139 @@
+{
+  "ticketCounter": 0,
+  "panels": [
+    {
+      "id": "panel_account",
+      "name": "Buy Account",
+      "categoryKey": "account",
+      "enabled": true,
+      "embed": {
+        "title": "WGG - BUY ACC",
+        "description": "Press **Create ticket** to open a ticket if you are interested in buying an account from WGG.\n\nThe current stock that WGG has is listed — take a look.\n\nBefore creating a ticket, please check the text above, also visit #FAQ under the information tab.",
+        "color": "#57F287",
+        "footer": "WGG Ticket System"
+      },
+      "button": {
+        "label": "Create ticket",
+        "emoji": "📩",
+        "style": "Secondary"
+      },
+      "welcomeEmbed": {
+        "title": "🎫 Ticket Received",
+        "description": "Hi {user}! We received your ticket already. Please wait for {staff} to respond to you very soon.\n\nWhile waiting, you can also check our available accounts on our official website.\n\n**WGG Apex Website (Account Marketplace):** https://wggapex.com\n\nIf you already have an account that you want to purchase, simply provide us with the **Account ID** or send the link here.\n\n⚠️ Please do not spam messages.",
+        "color": "#57F287",
+        "footer": "WGG Support Team"
+      },
+      "pingStaff": true
+    },
+    {
+      "id": "panel_boosting",
+      "name": "Boosting",
+      "categoryKey": "boosting",
+      "enabled": true,
+      "embed": {
+        "title": "WGG - BOOSTING",
+        "description": "Press **Create ticket** if you need help with boosting services.\n\nInclude your order details and proof of payment if applicable.",
+        "color": "#FEE75C",
+        "footer": "WGG Ticket System"
+      },
+      "button": {
+        "label": "Create ticket",
+        "emoji": "📩",
+        "style": "Secondary"
+      },
+      "welcomeEmbed": {
+        "title": "🎫 Ticket Received",
+        "description": "Hi {user}! We received your ticket already. Please wait for {staff} to respond to you very soon.\n\nPlease share your boosting order details, proof of payment, and any questions you have.\n\n⚠️ Please do not spam messages.",
+        "color": "#FEE75C",
+        "footer": "WGG Support Team"
+      },
+      "pingStaff": true
+    },
+    {
+      "id": "panel_unban",
+      "name": "Buy Unban",
+      "categoryKey": "unban",
+      "enabled": true,
+      "embed": {
+        "title": "WGG BUY UNBAN",
+        "description": "Press **Create ticket** if you are interested in buying an unban service for your account.\n\nBefore creating a ticket, please check the information posted above.",
+        "color": "#57F287",
+        "footer": "WGG Ticket System"
+      },
+      "button": {
+        "label": "Create ticket",
+        "emoji": "📩",
+        "style": "Secondary"
+      },
+      "welcomeEmbed": {
+        "title": "🎫 Ticket Received",
+        "description": "Hi {user}! We received your ticket already. Please wait for {staff} to respond to you very soon.\n\nPlease provide your EA account details, ban reason if known, and any relevant information for your unban request.\n\n⚠️ Please do not spam messages.",
+        "color": "#ED4245",
+        "footer": "WGG Support Team"
+      },
+      "pingStaff": true
+    },
+    {
+      "id": "panel_relink",
+      "name": "Relink",
+      "categoryKey": "relink",
+      "enabled": true,
+      "embed": {
+        "title": "WGG - RELINK",
+        "description": "Press **Create ticket** for account relink requests.\n\nInclude your old account, new account, and proof of ownership.",
+        "color": "#57F287",
+        "footer": "WGG Ticket System"
+      },
+      "button": {
+        "label": "Create ticket",
+        "emoji": "📩",
+        "style": "Secondary"
+      },
+      "welcomeEmbed": {
+        "title": "🎫 Ticket Received",
+        "description": "Hi {user}! We received your ticket already. Please wait for {staff} to respond to you very soon.\n\nPlease explain your relink request with your old account, new account, and proof of ownership.\n\n⚠️ Please do not spam messages.",
+        "color": "#57F287",
+        "footer": "WGG Support Team"
+      },
+      "pingStaff": true
+    },
+    {
+      "id": "panel_predator",
+      "name": "Predator",
+      "categoryKey": "predator",
+      "enabled": true,
+      "embed": {
+        "title": "WGG - PREDATOR",
+        "description": "Press **Create ticket** for predator-related reports or questions.\n\nPlease provide as much detail as possible.",
+        "color": "#EB459E",
+        "footer": "WGG Ticket System"
+      },
+      "button": {
+        "label": "Create ticket",
+        "emoji": "📩",
+        "style": "Secondary"
+      },
+      "welcomeEmbed": {
+        "title": "🎫 Ticket Received",
+        "description": "Hi {user}! We received your ticket already. Please wait for {staff} to respond to you very soon.\n\nPlease describe your predator-related report or question in as much detail as possible.\n\n⚠️ Please do not spam messages.",
+        "color": "#EB459E",
+        "footer": "WGG Support Team"
+      },
+      "pingStaff": true
+    }
+  ],
+  "customCommands": [
+    {
+      "id": "cmd_thankyou",
+      "name": "thankyou",
+      "description": "Send a thank you message to the user",
+      "staffOnly": true,
+      "embed": {
+        "title": "Thank You!",
+        "description": "Thank you for choosing **WGG**! We appreciate your patience and hope we resolved your issue.\n\nIf you need anything else, feel free to open a new ticket anytime.",
+        "color": "#5865F2",
+        "footer": "WGG Support Team"
+      }
+    }
+  ]
+}
