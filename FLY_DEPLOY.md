@@ -169,9 +169,8 @@ In Discord:
 | `fly status` | Machine status |
 | `fly restart` | Restart bot |
 | `fly secrets set KEY=value` | Update a secret |
-| `fly deploy` | Redeploy after code changes |
-| `fly ssh console` | SSH into container |
-| `fly scale count 1` | Ensure 1 machine running |
+| `fly deploy --ha=false` | Deploy with **1 machine only** (required for Discord bots) |
+| `fly scale count 1` | Fix if Fly created 2 machines |
 
 ---
 
@@ -179,12 +178,24 @@ In Discord:
 
 ```powershell
 git pull origin main
-fly deploy
+fly deploy --ha=false
+fly scale count 1 --yes
 ```
+
+**Important:** Fly defaults to **2 machines** (high availability). Discord bots must use **1 machine** (one token = one session). Always deploy with `--ha=false`, then confirm `fly scale count 1`.
 
 ---
 
 ## Troubleshooting
+
+### Two machines after deploy
+Fly creates 2 machines by default for web apps. Discord bots need exactly 1:
+
+```powershell
+fly scale count 1 --yes -a wgg-bot
+```
+
+Or destroy the extra machine in **Machines** → trash icon. Dashboard **Edit app scale → 1** does not always apply to the next GitHub deploy — use `--ha=false` on CLI deploys.
 
 ### Bot not online
 ```powershell
