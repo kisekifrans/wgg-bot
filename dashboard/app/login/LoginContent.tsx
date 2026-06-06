@@ -11,12 +11,18 @@ export default function LoginContent() {
   const error = searchParams.get('error');
 
   useEffect(() => {
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      return;
+    }
     createClient().auth.getSession().then(({ data }) => {
       if (data.session) window.location.href = '/dashboard';
-    });
+    }).catch(() => {});
   }, []);
 
   const login = async () => {
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      return;
+    }
     const supabase = createClient();
     await supabase.auth.signInWithOAuth({
       provider: 'discord',
@@ -41,7 +47,17 @@ export default function LoginContent() {
               Discord ticketing control panel
             </p>
 
-            {error && (
+            {error === 'config' && (
+              <p className="mt-5 rounded-xl border border-[var(--glass-border)] bg-[var(--surface)] px-3 py-2.5 text-left text-sm text-[var(--text-secondary)]">
+                Server misconfigured. On Vercel, add{' '}
+                <code className="code-inline">NEXT_PUBLIC_SUPABASE_URL</code>,{' '}
+                <code className="code-inline">NEXT_PUBLIC_SUPABASE_ANON_KEY</code>,{' '}
+                <code className="code-inline">SUPABASE_SERVICE_ROLE_KEY</code>,{' '}
+                <code className="code-inline">DISCORD_BOT_TOKEN</code>, and{' '}
+                <code className="code-inline">GUILD_ID</code>, then redeploy.
+              </p>
+            )}
+            {error && error !== 'config' && (
               <p className="mt-5 rounded-xl border border-[var(--glass-border)] bg-[var(--surface)] px-3 py-2.5 text-sm text-[var(--text-secondary)]">
                 Login failed. Please try again.
               </p>
