@@ -1,0 +1,16 @@
+# Bot runtime — not for Vercel (Fly.io only)
+index.js
+fly.toml
+Dockerfile
+.dockerignore
+ecosystem.config.cjs
+commands
+events
+utils
+config
+scripts
+server
+legacy-dashboard
+data
+deploy
+supabase

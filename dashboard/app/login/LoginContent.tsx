@@ -71,7 +71,7 @@ export default function LoginContent() {
             </button>
 
             <p className="mt-6 text-[10px] tracking-wide text-[var(--text-muted)]">
-              Owner / admin only · Syncs in ~15s
+              Owner / admin only · Syncs in ~15s · Dashboard v1.0.1
             </p>
           </div>
         </div>
