@@ -14,12 +14,24 @@ export function PanelsPage() {
   const [store, setStore] = useState<StoreData | null>(null);
   const [editing, setEditing] = useState<Panel | null | undefined>(undefined);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
   const [toast, setToast] = useState('');
 
   const load = async () => {
-    const res = await fetch('/api/store');
-    if (res.ok) setStore(await res.json());
-    setLoading(false);
+    setLoadError('');
+    try {
+      const res = await fetch('/api/store');
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setLoadError(typeof data.error === 'string' ? data.error : `Failed to load panels (${res.status})`);
+        return;
+      }
+      setStore(data);
+    } catch {
+      setLoadError('Failed to load panels. Check your connection and try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => { load(); }, []);
@@ -73,7 +85,15 @@ export function PanelsPage() {
 
       {loading ? (
         <LoadingGrid count={5} />
-      ) : store?.panels.length === 0 ? (
+      ) : loadError ? (
+        <div className="glass-card flex flex-col items-center justify-center p-14 text-center">
+          <p className="font-display text-base font-medium">Could not load panels</p>
+          <p className="hint mt-2 max-w-md">{loadError}</p>
+          <button type="button" className="btn-primary mt-6" onClick={() => { setLoading(true); load(); }}>
+            Retry
+          </button>
+        </div>
+      ) : !store?.panels?.length ? (
         <div className="glass-card flex flex-col items-center justify-center p-14 text-center">
           <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--surface)] text-[var(--text-muted)]">
             <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>

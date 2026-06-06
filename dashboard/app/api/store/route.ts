@@ -58,11 +58,18 @@ export async function GET() {
   const guildId = process.env.GUILD_ID!;
   const service = createServiceClient();
 
-  const [{ data: config }, { data: panels }, { data: commands }] = await Promise.all([
-    service.from('guild_config').select('ticket_counter').eq('guild_id', guildId).maybeSingle(),
-    service.from('panels').select('*').eq('guild_id', guildId).order('sort_order'),
-    service.from('custom_commands').select('*').eq('guild_id', guildId).order('name'),
-  ]);
+  const [{ data: config, error: configErr }, { data: panels, error: panelsErr }, { data: commands, error: commandsErr }] =
+    await Promise.all([
+      service.from('guild_config').select('ticket_counter').eq('guild_id', guildId).maybeSingle(),
+      service.from('panels').select('*').eq('guild_id', guildId).order('sort_order'),
+      service.from('custom_commands').select('*').eq('guild_id', guildId).order('name'),
+    ]);
+
+  const dbError = configErr || panelsErr || commandsErr;
+  if (dbError) {
+    console.error('store GET:', dbError.message);
+    return NextResponse.json({ error: 'Failed to load from database' }, { status: 500 });
+  }
 
   const store: StoreData = {
     ticketCounter: config?.ticket_counter ?? 0,
