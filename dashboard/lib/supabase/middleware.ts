@@ -28,18 +28,15 @@ export async function updateSession(request: NextRequest) {
 
   const supabase = createServerClient(url!, anonKey!, {
     cookies: {
-      get(name: string) {
-        return request.cookies.get(name)?.value;
+      getAll() {
+        return request.cookies.getAll();
       },
-      set(name: string, value: string, options: Record<string, unknown>) {
-        request.cookies.set({ name, value, ...options });
-        response = NextResponse.next({ request });
-        response.cookies.set({ name, value, ...options });
-      },
-      remove(name: string, options: Record<string, unknown>) {
-        request.cookies.set({ name, value: '', ...options });
-        response = NextResponse.next({ request });
-        response.cookies.set({ name, value: '', ...options });
+      setAll(cookiesToSet: { name: string; value: string; options: Record<string, unknown> }[]) {
+        cookiesToSet.forEach(({ name, value, options }) => {
+          request.cookies.set(name, value);
+          response = NextResponse.next({ request });
+          response.cookies.set(name, value, options);
+        });
       },
     },
   });

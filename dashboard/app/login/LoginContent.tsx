@@ -9,6 +9,7 @@ import { WggLogo } from '@/components/WggLogo';
 export default function LoginContent() {
   const searchParams = useSearchParams();
   const error = searchParams.get('error');
+  const reason = searchParams.get('reason');
 
   useEffect(() => {
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
@@ -24,10 +25,17 @@ export default function LoginContent() {
       return;
     }
     const supabase = createClient();
-    await supabase.auth.signInWithOAuth({
+    const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'discord',
       options: { redirectTo: `${window.location.origin}/auth/callback` },
     });
+    if (error) {
+      console.error('signInWithOAuth:', error.message);
+      return;
+    }
+    if (data.url) {
+      window.location.href = data.url;
+    }
   };
 
   return (
@@ -60,6 +68,9 @@ export default function LoginContent() {
             {error && error !== 'config' && (
               <p className="mt-5 rounded-xl border border-[var(--glass-border)] bg-[var(--surface)] px-3 py-2.5 text-sm text-[var(--text-secondary)]">
                 Login failed. Please try again.
+                {reason && (
+                  <span className="mt-2 block text-xs text-[var(--text-muted)]">{reason}</span>
+                )}
               </p>
             )}
 
