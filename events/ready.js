@@ -16,7 +16,7 @@ module.exports = {
     onStoreChange(async () => {
       try {
         const { reloadCommands } = require('../utils/registerCommands');
-        await reloadCommands();
+        await reloadCommands({ force: true });
       } catch (error) {
         console.error('Failed to reload commands after store change:', error);
       }

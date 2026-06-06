@@ -60,11 +60,11 @@ function setClient(client) {
   clientRef = client;
 }
 
-async function reloadCommands() {
+async function reloadCommands(options = {}) {
   if (!clientRef?.isReady()) {
     return;
   }
-  await registerGuildCommands(clientRef);
+  await registerGuildCommands(clientRef, options);
 }
 
 module.exports = {
