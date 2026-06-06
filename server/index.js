@@ -19,7 +19,7 @@ const PORT = process.env.DASHBOARD_PORT || 3847;
 const DASHBOARD_PASSWORD = process.env.DASHBOARD_PASSWORD || 'wgg-admin';
 
 app.use(express.json({ limit: '1mb' }));
-app.use(express.static(path.join(__dirname, '../public')));
+app.use(express.static(path.join(__dirname, '../legacy-dashboard/public')));
 
 function authMiddleware(req, res, next) {
   const header = req.headers.authorization;
@@ -110,7 +110,7 @@ app.put('/api/settings', authMiddleware, (req, res) => {
 });
 
 app.get('*', (_req, res) => {
-  res.sendFile(path.join(__dirname, '../public/index.html'));
+  res.sendFile(path.join(__dirname, '../legacy-dashboard/public/index.html'));
 });
 
 function startDashboard() {
