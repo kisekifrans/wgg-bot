@@ -56,9 +56,6 @@ async function registerGuildCommands(client, { force = false } = {}) {
   return commands.length;
 }
 
-/** @type {import('discord.js').Client | null} */
-let clientRef = null;
-
 function setClient(client) {
   clientRef = client;
 }
