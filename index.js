@@ -27,7 +27,7 @@ if (missingEnv.length > 0) {
 } else {
   main().catch((error) => {
     console.error('Fatal startup error:', error);
-    setHealthStatus(false, error.message);
+    setHealthStatus(false, error.message, error.message);
   });
 }
 
@@ -40,34 +40,7 @@ function isRateLimitError(error) {
   return msg.includes('429') || /rate limit/i.test(msg);
 }
 
-function createDiscordClient() {
-  const client = new Client({
-    intents: [
-      GatewayIntentBits.Guilds,
-      GatewayIntentBits.GuildMessages,
-      GatewayIntentBits.MessageContent,
-    ],
-    partials: [Partials.Channel],
-  });
-
-  client.on('shardReconnecting', (id) => {
-    console.log(`🔄 Shard ${id} reconnecting`);
-    setHealthStatus(false, `Discord shard ${id} reconnecting`);
-  });
-
-  client.on('shardDisconnect', (event, id) => {
-    console.log(`⚠️ Shard ${id} disconnected (code ${event.code})`);
-  });
-
-  client.on('shardError', (error) => {
-    console.error('Discord shard error:', error);
-    setHealthStatus(false, `Discord: ${error.message}`);
-  });
-
-  client.on('error', (error) => {
-    console.error('Discord client error:', error);
-  });
-
+function loadCommands(client) {
   client.commands = new Collection();
 
   const commandsPath = path.join(__dirname, 'commands');
@@ -84,7 +57,9 @@ function createDiscordClient() {
     client.commands.set(command.data.name, command);
     console.log(`📦 Loaded command: /${command.data.name}`);
   }
+}
 
+function loadEvents(client) {
   const eventsPath = path.join(__dirname, 'events');
   const eventFiles = fs.readdirSync(eventsPath).filter((file) => file.endsWith('.js'));
 
@@ -100,25 +75,68 @@ function createDiscordClient() {
 
     console.log(`📡 Loaded event: ${event.name}`);
   }
+}
+
+function createDiscordClient() {
+  const client = new Client({
+    intents: [
+      GatewayIntentBits.Guilds,
+      GatewayIntentBits.GuildMessages,
+      GatewayIntentBits.MessageContent,
+    ],
+    partials: [Partials.Channel],
+    ws: {
+      handshakeTimeout: 60000,
+      helloTimeout: 60000,
+      readyTimeout: 180000,
+    },
+  });
+
+  client.on('shardReconnecting', (id) => {
+    console.log(`🔄 Shard ${id} reconnecting`);
+    setHealthStatus(false, `Discord shard ${id} reconnecting`);
+  });
+
+  client.on('shardDisconnect', (event, id) => {
+    console.log(`⚠️ Shard ${id} disconnected (code ${event.code})`);
+  });
+
+  loadCommands(client);
+  loadEvents(client);
 
   return client;
 }
 
-async function loginDiscord(client, token, timeoutMs = 120000) {
+async function destroyClient(client) {
+  try {
+    client.removeAllListeners();
+    await client.destroy();
+  } catch (error) {
+    console.error('Client destroy error:', error.message);
+  }
+}
+
+async function loginDiscord(client, token, timeoutMs = 180000) {
   return new Promise((resolve, reject) => {
+    let settled = false;
+
+    const finish = (fn, value) => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      clearTimeout(timer);
+      fn(value);
+    };
+
     const timer = setTimeout(() => {
-      reject(new Error(`Discord login timed out after ${timeoutMs / 1000}s`));
+      finish(reject, new Error(`Discord gateway timed out after ${timeoutMs / 1000}s`));
     }, timeoutMs);
 
-    client.once(Events.ClientReady, () => {
-      clearTimeout(timer);
-      resolve();
-    });
+    client.once(Events.ClientReady, () => finish(resolve));
+    client.once('shardError', (error) => finish(reject, error));
 
-    client.login(token).catch((error) => {
-      clearTimeout(timer);
-      reject(error);
-    });
+    client.login(token).catch((error) => finish(reject, error));
   });
 }
 
@@ -129,26 +147,34 @@ async function connectWithRetry(token) {
     attempt += 1;
     const client = createDiscordClient();
 
-    setHealthStatus(false, attempt === 1 ? 'connecting to Discord' : `connecting to Discord (attempt ${attempt})`);
-    console.log(`🔌 Connecting to Discord (attempt ${attempt})...`);
+    setHealthStatus(
+      false,
+      attempt === 1 ? 'connecting to Discord' : `connecting to Discord (attempt ${attempt})`,
+    );
+    console.log(`🔌 Connecting to Discord (attempt ${attempt}, token length ${token.length})...`);
 
     try {
       await loginDiscord(client, token);
       console.log('✅ Bot is fully online');
       return client;
     } catch (error) {
-      console.error(`❌ Discord login failed (attempt ${attempt}):`, error.message);
-      client.destroy();
+      const errMsg = error?.message || String(error);
+      console.error(`❌ Discord login failed (attempt ${attempt}):`, errMsg);
+
+      await destroyClient(client);
+      // Let Discord release the session before reconnecting (same token = one session)
+      await sleep(15000);
 
       const waitMs = isRateLimitError(error)
         ? Math.min(attempt * 120000, 600000)
-        : Math.min(attempt * 30000, 180000);
+        : Math.min(attempt * 60000, 300000);
 
       setHealthStatus(
         false,
         isRateLimitError(error)
-          ? `Discord rate limited — auto-retry in ${Math.round(waitMs / 1000)}s (do not redeploy)`
-          : `Discord login failed — retry in ${Math.round(waitMs / 1000)}s`,
+          ? `Discord rate limited — retry in ${Math.round(waitMs / 1000)}s`
+          : `Discord: ${errMsg.slice(0, 80)} — retry in ${Math.round(waitMs / 1000)}s`,
+        errMsg,
       );
 
       await sleep(waitMs);
@@ -170,7 +196,7 @@ async function main() {
     await initStore();
   } catch (error) {
     console.error('❌ Failed to load store from Supabase:', error);
-    setHealthStatus(false, `Store error: ${error.message}`);
+    setHealthStatus(false, `Store error: ${error.message}`, error.message);
     return;
   }
 

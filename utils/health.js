@@ -1,13 +1,14 @@
 const http = require('http');
 
-let status = { ready: false, message: 'starting' };
+let status = { ready: false, message: 'starting', lastError: null };
 
 /**
  * @param {boolean} ready
  * @param {string} message
+ * @param {string} [lastError]
  */
-function setHealthStatus(ready, message) {
-  status = { ready, message };
+function setHealthStatus(ready, message, lastError) {
+  status = { ready, message, lastError: lastError ?? status.lastError };
 }
 
 /**
@@ -21,6 +22,7 @@ function startHealthServer(port = Number(process.env.PORT) || 8080) {
       message: status.message,
       ready: status.ready,
       uptime: process.uptime(),
+      lastError: status.lastError,
     };
 
     if (req.url === '/health' || req.url === '/') {
