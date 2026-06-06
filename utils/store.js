@@ -49,7 +49,13 @@ function saveStore(data) {
 
 async function initStore() {
   if (isSupabaseEnabled()) {
-    cache = await fetchStoreFromSupabase();
+    const timeoutMs = 20000;
+    cache = await Promise.race([
+      fetchStoreFromSupabase(),
+      new Promise((_, reject) => {
+        setTimeout(() => reject(new Error(`Supabase store load timed out after ${timeoutMs / 1000}s`)), timeoutMs);
+      }),
+    ]);
     console.log('📦 Store loaded from Supabase');
   } else {
     cache = loadStoreFromJson();

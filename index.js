@@ -33,8 +33,10 @@ if (missingEnv.length > 0) {
 
 async function main() {
   setHealthStatus(false, 'booting');
+  console.log('🚀 Booting WGG Ticket bot...');
 
   try {
+    console.log('📦 Loading store...');
     await initStore();
   } catch (error) {
     console.error('❌ Failed to load store from Supabase:', error);
@@ -94,7 +96,13 @@ async function main() {
     console.log('🌐 Using Supabase + Vercel dashboard (legacy dashboard disabled)');
   }
 
-  await client.login(process.env.DISCORD_TOKEN);
-  setHealthStatus(true, 'online');
+  console.log('🔌 Connecting to Discord...');
+  const loginTimeoutMs = 60000;
+  await Promise.race([
+    client.login(process.env.DISCORD_TOKEN),
+    new Promise((_, reject) => {
+      setTimeout(() => reject(new Error(`Discord login timed out after ${loginTimeoutMs / 1000}s`)), loginTimeoutMs);
+    }),
+  ]);
   console.log('✅ Bot is fully online');
 }

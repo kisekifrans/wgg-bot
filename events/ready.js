@@ -1,6 +1,7 @@
 const { Events } = require('discord.js');
 const { registerGuildCommands, setClient } = require('../utils/registerCommands');
 const { onStoreChange, watchStoreFile, reloadStore } = require('../utils/store');
+const { setHealthStatus } = require('../utils/health');
 
 module.exports = {
   name: Events.ClientReady,
@@ -8,6 +9,7 @@ module.exports = {
 
   async execute(client) {
     setClient(client);
+    setHealthStatus(true, 'online');
     console.log(`✅ Bot online as ${client.user.tag}`);
 
     watchStoreFile();
