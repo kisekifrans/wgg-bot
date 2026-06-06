@@ -1,6 +1,5 @@
 const { EmbedBuilder } = require('discord.js');
 const { hexToColor } = require('./embed');
-const { splitEdgeCustomEmojis, customEmojiToMessageContent } = require('./discordEmoji');
 
 /**
  * @param {string} text
@@ -32,11 +31,10 @@ function buildTicketWelcomeMessage(user, staffRoleId, panel, channelName, catego
   const welcomeConfig = panel.welcomeEmbed || {};
 
   const description = applyWelcomePlaceholders(welcomeConfig.description, user, staffRoleId);
-  const { trailing, body } = splitEdgeCustomEmojis(description);
 
   const embed = new EmbedBuilder()
     .setColor(hexToColor(welcomeConfig.color))
-    .setDescription(body)
+    .setDescription(description)
     .addFields(
       { name: 'Ticket ID', value: channelName.toUpperCase(), inline: true },
       { name: 'Category', value: categoryLabel, inline: true },
@@ -57,11 +55,8 @@ function buildTicketWelcomeMessage(user, staffRoleId, panel, channelName, catego
     mentions.push(`<@&${staffRoleId}>`);
   }
 
-  const trailingEmoji = customEmojiToMessageContent(trailing);
-  const content = [mentions.join(' '), trailingEmoji].filter(Boolean).join(' ');
-
   return {
-    content,
+    content: mentions.join(' '),
     embeds: [embed],
     allowedMentions: {
       users: [user.id],

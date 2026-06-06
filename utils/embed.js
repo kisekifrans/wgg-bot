@@ -1,10 +1,4 @@
 const { EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder } = require('discord.js');
-const {
-  parseCustomEmojiTag,
-  normalizeKnownEmojiShortcodes,
-  splitEdgeCustomEmojis,
-  customEmojiToMessageContent,
-} = require('./discordEmoji');
 
 const BUTTON_STYLES = {
   Primary: ButtonStyle.Primary,
@@ -37,7 +31,7 @@ function buildEmbedFromConfig(config) {
   }
 
   if (config.description) {
-    embed.setDescription(normalizeKnownEmojiShortcodes(config.description));
+    embed.setDescription(config.description);
   }
 
   if (config.footer) {
@@ -49,13 +43,11 @@ function buildEmbedFromConfig(config) {
 }
 
 /**
- * Panel embeds: leading custom emoji goes in message content (Discord embed text often shows :name: only).
  * @param {import('../types/store').Panel} panel
- * @returns {{ content?: string, embeds: EmbedBuilder[], components: ActionRowBuilder[] }}
+ * @returns {{ embeds: EmbedBuilder[], components: ActionRowBuilder[] }}
  */
 function buildPanelMessage(panel) {
-  const { leading, body } = splitEdgeCustomEmojis(panel.embed?.description || '');
-  const embed = buildEmbedFromConfig({ ...panel.embed, description: body });
+  const embed = buildEmbedFromConfig(panel.embed);
   const style = BUTTON_STYLES[panel.button.style] ?? ButtonStyle.Secondary;
 
   const button = new ButtonBuilder()
@@ -64,14 +56,17 @@ function buildPanelMessage(panel) {
     .setStyle(style);
 
   if (panel.button.emoji) {
-    const custom = parseCustomEmojiTag(panel.button.emoji);
-    button.setEmoji(custom ? { name: custom.name, id: custom.id, animated: custom.animated } : panel.button.emoji);
+    const custom = String(panel.button.emoji).match(/^<a?:(\w+):(\d+)>$/);
+    button.setEmoji(
+      custom
+        ? { name: custom[1], id: custom[2], animated: panel.button.emoji.startsWith('<a:') }
+        : panel.button.emoji,
+    );
   }
 
   const row = new ActionRowBuilder().addComponents(button);
 
   return {
-    content: customEmojiToMessageContent(leading),
     embeds: [embed],
     components: [row],
   };
