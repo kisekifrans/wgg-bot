@@ -3,6 +3,10 @@ export type EmbedConfig = {
   description?: string;
   color?: string;
   footer?: string;
+  /** Large image at the bottom of the embed (https URL) */
+  image?: string;
+  /** Small image in the top-right corner (https URL) */
+  thumbnail?: string;
 };
 
 export type Panel = {

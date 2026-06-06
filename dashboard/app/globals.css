@@ -388,6 +388,15 @@ body {
   @apply rounded-r-md pl-3 pt-2 pb-2;
   border-left: 4px solid var(--accent);
   background: rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+}
+
+.discord-embed-thumbnail {
+  @apply float-right ml-3 mb-1 mt-0.5 h-20 w-20 rounded object-cover;
+}
+
+.discord-embed-image {
+  @apply mt-2 max-h-52 w-full rounded object-cover;
 }
 
 .discord-embed-title { @apply mb-1 text-sm font-semibold text-[#f2f3f5]; }

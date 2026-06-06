@@ -68,6 +68,12 @@ async function generateTranscript(channel) {
       const title = embed.title || 'No title';
       const description = embed.description || 'No description';
       transcript += `  [Embed] ${title} — ${description}\n`;
+      if (embed.image?.url) {
+        transcript += `  [Embed Image] ${embed.image.url}\n`;
+      }
+      if (embed.thumbnail?.url) {
+        transcript += `  [Embed Thumbnail] ${embed.thumbnail.url}\n`;
+      }
     }
 
     for (const attachment of message.attachments.values()) {

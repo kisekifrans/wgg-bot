@@ -34,6 +34,7 @@ export function EmbedGuide({ variant = 'panel', defaultOpen = false }: Props) {
                 <li><code className="code-inline">{'{user}'}</code> — pings the ticket opener</li>
                 <li><code className="code-inline">{'{username}'}</code> — username only, no ping</li>
                 <li><code className="code-inline">{'{staff}'}</code> — mentions your staff role</li>
+                <li><code className="code-inline">{'{owner}'}</code> — mentions the server owner (from bot env)</li>
               </ul>
               <p className="hint mt-2">Welcome embeds also get auto fields: Ticket ID, Category, Status.</p>
             </section>
@@ -92,6 +93,20 @@ export function EmbedGuide({ variant = 'panel', defaultOpen = false }: Props) {
               Embed color
             </h4>
             <p>Use hex colors like <code className="code-inline">#57F287</code> (green) or <code className="code-inline">#5865F2</code> (Discord blurple). Shown as the left border in Discord.</p>
+          </section>
+
+          <section>
+            <h4 className="mb-2 font-display text-[11px] font-semibold uppercase tracking-wider text-[var(--text-primary)]">
+              Embed images
+            </h4>
+            <ul className="guide-list space-y-1.5">
+              <li><strong>Image URL</strong> — large banner at the bottom of the embed</li>
+              <li><strong>Thumbnail URL</strong> — small image in the top-right corner</li>
+            </ul>
+            <p className="hint mt-2">
+              Use a direct public <code className="code-inline">https://</code> link (PNG, JPG, or GIF).
+              Discord cannot load private or login-protected URLs. Imgur, CDN, or your website work well.
+            </p>
           </section>
 
           {variant === 'command' && (

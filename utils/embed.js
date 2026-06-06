@@ -20,6 +20,40 @@ function hexToColor(hex) {
 }
 
 /**
+ * @param {string | undefined} url
+ * @returns {boolean}
+ */
+function isValidHttpUrl(url) {
+  if (!url || typeof url !== 'string') {
+    return false;
+  }
+
+  try {
+    const parsed = new URL(url.trim());
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * @param {EmbedBuilder} embed
+ * @param {{ image?: string, thumbnail?: string }} config
+ * @returns {EmbedBuilder}
+ */
+function applyEmbedMedia(embed, config) {
+  if (isValidHttpUrl(config?.image)) {
+    embed.setImage(config.image.trim());
+  }
+
+  if (isValidHttpUrl(config?.thumbnail)) {
+    embed.setThumbnail(config.thumbnail.trim());
+  }
+
+  return embed;
+}
+
+/**
  * @param {import('../types/store').EmbedConfig} config
  * @returns {EmbedBuilder}
  */
@@ -38,6 +72,7 @@ function buildEmbedFromConfig(config) {
     embed.setFooter({ text: config.footer });
   }
 
+  applyEmbedMedia(embed, config);
   embed.setTimestamp();
   return embed;
 }
@@ -74,6 +109,8 @@ function buildPanelMessage(panel) {
 
 module.exports = {
   hexToColor,
+  isValidHttpUrl,
+  applyEmbedMedia,
   buildEmbedFromConfig,
   buildPanelMessage,
 };

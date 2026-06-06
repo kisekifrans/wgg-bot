@@ -20,7 +20,7 @@ type Props = {
   /** Sample values shown in welcome preview */
   welcomeMeta?: { ticketId?: string; category?: string };
   showPings?: boolean;
-  placeholders?: { user?: string; staff?: string; username?: string };
+  placeholders?: { user?: string; staff?: string; username?: string; owner?: string };
   botName?: string;
 };
 
@@ -38,6 +38,8 @@ export function DiscordPreview({
   const title = applyPlaceholders(embed.title || '', placeholders);
   const description = applyPlaceholders(embed.description || '', placeholders);
   const footer = embed.footer || '';
+  const imageUrl = embed.image?.trim();
+  const thumbnailUrl = embed.thumbnail?.trim();
   const btnStyle = BUTTON_STYLES[button?.style || 'Secondary'] || BUTTON_STYLES.Secondary;
   const btnEmoji = parseButtonEmoji(button?.emoji);
 
@@ -57,7 +59,8 @@ export function DiscordPreview({
         {variant === 'welcome' && showPings && (
           <div className="discord-pings">
             <span className="discord-md-mention">@User</span>{' '}
-            <span className="discord-md-mention discord-md-role">@Staff</span>
+            <span className="discord-md-mention discord-md-role">@Staff</span>{' '}
+            <span className="discord-md-mention">@Owner</span>
           </div>
         )}
 
@@ -82,6 +85,18 @@ export function DiscordPreview({
 
             <div className="discord-embed-wrap">
               <div className="discord-embed" style={{ borderColor: color }}>
+                {thumbnailUrl && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={thumbnailUrl}
+                    alt=""
+                    className="discord-embed-thumbnail"
+                    draggable={false}
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
+                )}
                 {title && (
                   <div className="discord-embed-title">{renderDiscordMarkdown(title)}</div>
                 )}
@@ -108,6 +123,19 @@ export function DiscordPreview({
                       <div className="discord-embed-field-value">🟢 Open</div>
                     </div>
                   </div>
+                )}
+
+                {imageUrl && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={imageUrl}
+                    alt=""
+                    className="discord-embed-image"
+                    draggable={false}
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
                 )}
 
                 {footer && (

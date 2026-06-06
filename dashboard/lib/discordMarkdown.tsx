@@ -98,13 +98,14 @@ export function renderDiscordMarkdown(text: string): React.ReactNode {
 
 export function applyPlaceholders(
   text: string,
-  placeholders?: { user?: string; staff?: string; username?: string },
+  placeholders?: { user?: string; staff?: string; username?: string; owner?: string },
 ): string {
   if (!text || !placeholders) return text || '';
   return text
     .replace(/\{user\}/g, placeholders.user || '@User')
     .replace(/\{username\}/g, placeholders.username || 'User')
-    .replace(/\{staff\}/g, placeholders.staff || '@Staff');
+    .replace(/\{staff\}/g, placeholders.staff || '@Staff')
+    .replace(/\{owner\}/g, placeholders.owner || '@Owner');
 }
 
 export function parseButtonEmoji(emoji?: string): { display: string; isCustom: boolean; name?: string } {

@@ -151,6 +151,7 @@ async function handlePanelTicket(interaction, panelId) {
     panel,
     channelName,
     category.label,
+    process.env.OWNER_DISCORD_ID,
   );
 
   const closeRow = new ActionRowBuilder().addComponents(

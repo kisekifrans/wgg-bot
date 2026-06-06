@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import type { CustomCommand, StoreData } from '@/lib/types';
 import { DiscordPreview } from './DiscordPreview';
 import { EmbedGuide } from './EmbedGuide';
+import { EmbedMediaFields } from './EmbedMediaFields';
 import { PageHeader } from './PageHeader';
 import { Toast } from './Toast';
 import { LoadingGrid } from './LoadingGrid';
@@ -168,6 +169,12 @@ export function CommandsPage() {
                       <input className="input" value={form.embed?.footer || ''} onChange={(e) => updateEmbed('footer', e.target.value)} />
                     </div>
                   </div>
+                  <EmbedMediaFields
+                    image={form.embed?.image}
+                    thumbnail={form.embed?.thumbnail}
+                    onImageChange={(value) => updateEmbed('image', value)}
+                    onThumbnailChange={(value) => updateEmbed('thumbnail', value)}
+                  />
                 </div>
 
                 <EmbedGuide variant="command" />

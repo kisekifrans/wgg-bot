@@ -5,6 +5,7 @@ import type { Panel } from '@/lib/types';
 import { CATEGORIES } from '@/lib/categories';
 import { DiscordPreview } from './DiscordPreview';
 import { EmbedGuide } from './EmbedGuide';
+import { EmbedMediaFields } from './EmbedMediaFields';
 import { IconClose } from './icons';
 
 type Props = {
@@ -23,7 +24,7 @@ const defaultPanel: Partial<Panel> = {
   welcomeEmbed: {
     title: '🎫 Ticket Received',
     description:
-      'Hi {user}! We received your ticket already. Please wait for {staff} to respond to you very soon.\n\n⚠️ Please do not spam messages.',
+      'Hi {user}! We received your ticket already. Please wait for {staff} / {owner} to respond to you very soon.\n\n⚠️ Please do not spam messages.',
     color: '#57F287',
     footer: 'WGG Support Team',
   },
@@ -34,6 +35,7 @@ const PREVIEW_PLACEHOLDERS = {
   user: '@TicketUser',
   username: 'TicketUser',
   staff: '@Staff',
+  owner: '@Owner',
 };
 
 export function PanelEditor({ panel, onClose, onSave, onDelete }: Props) {
@@ -105,6 +107,12 @@ export function PanelEditor({ panel, onClose, onSave, onDelete }: Props) {
                   <input className="input" placeholder="WGG Ticket System" value={form.embed?.footer || ''} onChange={(e) => setField('embed.footer', e.target.value)} />
                 </div>
               </div>
+              <EmbedMediaFields
+                image={form.embed?.image}
+                thumbnail={form.embed?.thumbnail}
+                onImageChange={(value) => setField('embed.image', value)}
+                onThumbnailChange={(value) => setField('embed.thumbnail', value)}
+              />
             </div>
 
             <div className="glass-inset p-4">
@@ -144,6 +152,12 @@ export function PanelEditor({ panel, onClose, onSave, onDelete }: Props) {
                   <input className="input" placeholder="WGG Support Team" value={form.welcomeEmbed?.footer || ''} onChange={(e) => setField('welcomeEmbed.footer', e.target.value)} />
                 </div>
               </div>
+              <EmbedMediaFields
+                image={form.welcomeEmbed?.image}
+                thumbnail={form.welcomeEmbed?.thumbnail}
+                onImageChange={(value) => setField('welcomeEmbed.image', value)}
+                onThumbnailChange={(value) => setField('welcomeEmbed.thumbnail', value)}
+              />
               <label className="mt-3 flex cursor-pointer items-center gap-2.5 text-sm text-[var(--text-secondary)]">
                 <input type="checkbox" className="accent-[var(--accent)]" checked={form.pingStaff !== false} onChange={(e) => setField('pingStaff', e.target.checked)} />
                 Ping staff role when ticket opens
