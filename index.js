@@ -6,6 +6,7 @@ const path = require('path');
 const { getRequiredEnvKeys } = require('./config/ticketCategories');
 const { initStore, watchStoreFile, startStorePolling } = require('./utils/store');
 const { isSupabaseEnabled } = require('./utils/supabaseClient');
+const { startHealthServer } = require('./utils/health');
 
 const requiredEnv = [
   'DISCORD_TOKEN',
@@ -23,6 +24,8 @@ if (missingEnv.length > 0) {
 }
 
 async function main() {
+  startHealthServer();
+
   await initStore();
 
   const client = new Client({

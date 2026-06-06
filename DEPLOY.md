@@ -46,17 +46,21 @@ node scripts/migrate-to-supabase.js
 2. Add environment variables from `dashboard/.env.local.example`
 3. Deploy
 
-## 4. Deploy bot (Oracle Cloud Free VM — recommended)
+## 4. Deploy bot (Fly.io — recommended)
 
-See **[ORACLE_DEPLOY.md](./ORACLE_DEPLOY.md)** for the full step-by-step guide.
+See **[FLY_DEPLOY.md](./FLY_DEPLOY.md)** for the full step-by-step guide.
 
 Quick summary:
-1. Create Ubuntu ARM VM on Oracle Cloud (Always Free)
-2. SSH in → run `deploy/oracle-setup.sh`
-3. Edit `~/wgg-bot/.env` with your tokens
-4. `npm run migrate:supabase && pm2 start ecosystem.config.cjs`
+1. Install `flyctl` → `fly auth login`
+2. `fly launch --no-deploy`
+3. `fly secrets import < .env`
+4. `fly deploy`
 
-## 4b. Deploy bot (Railway / other)
+## 4b. Deploy bot (Oracle Cloud Free VM)
+
+See **[ORACLE_DEPLOY.md](./ORACLE_DEPLOY.md)**.
+
+## 4c. Deploy bot (Railway / other)
 
 1. Deploy root folder (not `dashboard/`)
 2. Set all bot env vars including:
