@@ -1,12 +1,15 @@
 require('dotenv').config();
 
+// Start health server FIRST — Fly.io needs port 8080 up immediately
+const { startHealthServer, setHealthStatus } = require('./utils/health');
+startHealthServer();
+
 const { Client, Collection, GatewayIntentBits, Partials } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
 const { getRequiredEnvKeys } = require('./config/ticketCategories');
 const { initStore, watchStoreFile, startStorePolling } = require('./utils/store');
 const { isSupabaseEnabled } = require('./utils/supabaseClient');
-const { startHealthServer } = require('./utils/health');
 
 const requiredEnv = [
   'DISCORD_TOKEN',
@@ -20,11 +23,16 @@ const missingEnv = requiredEnv.filter((key) => !process.env[key]);
 
 if (missingEnv.length > 0) {
   console.error(`❌ Missing environment variables: ${missingEnv.join(', ')}`);
-  process.exit(1);
+  setHealthStatus(false, `Missing env: ${missingEnv.join(', ')}`);
+} else {
+  main().catch((error) => {
+    console.error('Fatal startup error:', error);
+    setHealthStatus(false, error.message);
+  });
 }
 
 async function main() {
-  startHealthServer();
+  setHealthStatus(true, 'booting');
 
   await initStore();
 
@@ -81,9 +89,5 @@ async function main() {
   }
 
   await client.login(process.env.DISCORD_TOKEN);
+  setHealthStatus(true, 'online');
 }
-
-main().catch((error) => {
-  console.error('Fatal startup error:', error);
-  process.exit(1);
-});
