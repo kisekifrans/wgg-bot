@@ -11,6 +11,7 @@ primary_region = 'sin'
   NODE_ENV = 'production'
   START_LEGACY_DASHBOARD = 'false'
   PORT = '8080'
+  NODE_OPTIONS = '--dns-result-order=ipv4first'
 
 # Keep machine running 24/7 (required for Discord bot)
 [http_service]

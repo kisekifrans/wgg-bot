@@ -35,12 +35,23 @@ async function main() {
   setHealthStatus(false, 'booting');
   console.log('🚀 Booting WGG Ticket bot...');
 
+  if (process.env.FLY_MACHINE_ID) {
+    console.log(`🛫 Fly machine: ${process.env.FLY_MACHINE_ID}`);
+  }
+
   try {
+    setHealthStatus(false, 'loading store');
     console.log('📦 Loading store...');
     await initStore();
   } catch (error) {
     console.error('❌ Failed to load store from Supabase:', error);
     setHealthStatus(false, `Store error: ${error.message}`);
+    return;
+  }
+
+  const token = (process.env.DISCORD_TOKEN || '').trim();
+  if (!token) {
+    setHealthStatus(false, 'DISCORD_TOKEN is missing or empty');
     return;
   }
 
@@ -51,6 +62,15 @@ async function main() {
       GatewayIntentBits.MessageContent,
     ],
     partials: [Partials.Channel],
+  });
+
+  client.on('shardError', (error) => {
+    console.error('Discord shard error:', error);
+    setHealthStatus(false, `Discord: ${error.message}`);
+  });
+
+  client.on('error', (error) => {
+    console.error('Discord client error:', error);
   });
 
   client.commands = new Collection();
@@ -96,13 +116,27 @@ async function main() {
     console.log('🌐 Using Supabase + Vercel dashboard (legacy dashboard disabled)');
   }
 
+  setHealthStatus(false, 'connecting to Discord');
   console.log('🔌 Connecting to Discord...');
-  const loginTimeoutMs = 60000;
-  await Promise.race([
-    client.login(process.env.DISCORD_TOKEN),
-    new Promise((_, reject) => {
-      setTimeout(() => reject(new Error(`Discord login timed out after ${loginTimeoutMs / 1000}s`)), loginTimeoutMs);
-    }),
-  ]);
+  const loginTimeoutMs = 90000;
+  try {
+    await Promise.race([
+      client.login(token),
+      new Promise((_, reject) => {
+        setTimeout(
+          () =>
+            reject(
+              new Error(
+                `Discord login timed out after ${loginTimeoutMs / 1000}s — check token, scale to 1 Fly machine, stop local bot`,
+              ),
+            ),
+          loginTimeoutMs,
+        );
+      }),
+    ]);
+  } catch (loginError) {
+    client.destroy();
+    throw loginError;
+  }
   console.log('✅ Bot is fully online');
 }
