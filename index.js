@@ -55,6 +55,8 @@ async function main() {
     return;
   }
 
+  await verifyDiscordApi(token);
+
   const client = new Client({
     intents: [
       GatewayIntentBits.Guilds,
@@ -62,6 +64,15 @@ async function main() {
       GatewayIntentBits.MessageContent,
     ],
     partials: [Partials.Channel],
+  });
+
+  client.on('shardReconnecting', (id) => {
+    console.log(`🔄 Shard ${id} reconnecting`);
+    setHealthStatus(false, `Discord shard ${id} reconnecting`);
+  });
+
+  client.on('shardDisconnect', (event, id) => {
+    console.log(`⚠️ Shard ${id} disconnected (code ${event.code})`);
   });
 
   client.on('shardError', (error) => {
@@ -139,4 +150,20 @@ async function main() {
     throw loginError;
   }
   console.log('✅ Bot is fully online');
+}
+
+async function verifyDiscordApi(token) {
+  setHealthStatus(false, 'checking Discord API');
+  const res = await fetch('https://discord.com/api/v10/gateway/bot', {
+    headers: { Authorization: `Bot ${token}` },
+    signal: AbortSignal.timeout(15000),
+  });
+
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`Discord API rejected token (${res.status}): ${body.slice(0, 120)}`);
+  }
+
+  const data = await res.json();
+  console.log(`🌐 Discord API OK — ${data.shards} shard(s), session start limit ${data.session_start_limit.remaining}/${data.session_start_limit.max}`);
 }
