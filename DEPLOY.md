@@ -46,7 +46,17 @@ node scripts/migrate-to-supabase.js
 2. Add environment variables from `dashboard/.env.local.example`
 3. Deploy
 
-## 4. Deploy bot (Railway example)
+## 4. Deploy bot (Oracle Cloud Free VM — recommended)
+
+See **[ORACLE_DEPLOY.md](./ORACLE_DEPLOY.md)** for the full step-by-step guide.
+
+Quick summary:
+1. Create Ubuntu ARM VM on Oracle Cloud (Always Free)
+2. SSH in → run `deploy/oracle-setup.sh`
+3. Edit `~/wgg-bot/.env` with your tokens
+4. `npm run migrate:supabase && pm2 start ecosystem.config.cjs`
+
+## 4b. Deploy bot (Railway / other)
 
 1. Deploy root folder (not `dashboard/`)
 2. Set all bot env vars including:
