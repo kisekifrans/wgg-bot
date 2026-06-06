@@ -56,7 +56,8 @@ function buildPanelMessage(panel) {
     .setStyle(style);
 
   if (panel.button.emoji) {
-    button.setEmoji(panel.button.emoji);
+    const custom = String(panel.button.emoji).match(/^<:(\w+):(\d+)>$/);
+    button.setEmoji(custom ? { name: custom[1], id: custom[2] } : panel.button.emoji);
   }
 
   const row = new ActionRowBuilder().addComponents(button);
