@@ -6,5 +6,6 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/api/:path*', '/auth/:path*'],
+  // Exclude /auth/callback — PKCE exchange must run without middleware touching cookies
+  matcher: ['/dashboard/:path*', '/api/:path*'],
 };
