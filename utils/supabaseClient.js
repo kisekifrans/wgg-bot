@@ -1,4 +1,5 @@
 const { createClient } = require('@supabase/supabase-js');
+const WebSocket = require('ws');
 
 let client = null;
 
@@ -16,6 +17,9 @@ function getSupabase() {
 
   client = createClient(url, key, {
     auth: { persistSession: false, autoRefreshToken: false },
+    realtime: {
+      transport: WebSocket,
+    },
   });
 
   return client;
