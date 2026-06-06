@@ -4,7 +4,7 @@ require('dotenv').config();
 const { startHealthServer, setHealthStatus } = require('./utils/health');
 startHealthServer();
 
-const { Client, Collection, GatewayIntentBits, Partials } = require('discord.js');
+const { Client, Collection, Events, GatewayIntentBits, Partials } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
 const { getRequiredEnvKeys } = require('./config/ticketCategories');
@@ -31,32 +31,16 @@ if (missingEnv.length > 0) {
   });
 }
 
-async function main() {
-  setHealthStatus(false, 'booting');
-  console.log('🚀 Booting WGG Ticket bot...');
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
-  if (process.env.FLY_MACHINE_ID) {
-    console.log(`🛫 Fly machine: ${process.env.FLY_MACHINE_ID}`);
-  }
+function isRateLimitError(error) {
+  const msg = error?.message || String(error);
+  return msg.includes('429') || /rate limit/i.test(msg);
+}
 
-  try {
-    setHealthStatus(false, 'loading store');
-    console.log('📦 Loading store...');
-    await initStore();
-  } catch (error) {
-    console.error('❌ Failed to load store from Supabase:', error);
-    setHealthStatus(false, `Store error: ${error.message}`);
-    return;
-  }
-
-  const token = (process.env.DISCORD_TOKEN || '').trim();
-  if (!token) {
-    setHealthStatus(false, 'DISCORD_TOKEN is missing or empty');
-    return;
-  }
-
-  await verifyDiscordApi(token);
-
+function createDiscordClient() {
   const client = new Client({
     intents: [
       GatewayIntentBits.Guilds,
@@ -117,6 +101,85 @@ async function main() {
     console.log(`📡 Loaded event: ${event.name}`);
   }
 
+  return client;
+}
+
+async function loginDiscord(client, token, timeoutMs = 120000) {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      reject(new Error(`Discord login timed out after ${timeoutMs / 1000}s`));
+    }, timeoutMs);
+
+    client.once(Events.ClientReady, () => {
+      clearTimeout(timer);
+      resolve();
+    });
+
+    client.login(token).catch((error) => {
+      clearTimeout(timer);
+      reject(error);
+    });
+  });
+}
+
+async function connectWithRetry(token) {
+  let attempt = 0;
+
+  while (true) {
+    attempt += 1;
+    const client = createDiscordClient();
+
+    setHealthStatus(false, attempt === 1 ? 'connecting to Discord' : `connecting to Discord (attempt ${attempt})`);
+    console.log(`🔌 Connecting to Discord (attempt ${attempt})...`);
+
+    try {
+      await loginDiscord(client, token);
+      console.log('✅ Bot is fully online');
+      return client;
+    } catch (error) {
+      console.error(`❌ Discord login failed (attempt ${attempt}):`, error.message);
+      client.destroy();
+
+      const waitMs = isRateLimitError(error)
+        ? Math.min(attempt * 120000, 600000)
+        : Math.min(attempt * 30000, 180000);
+
+      setHealthStatus(
+        false,
+        isRateLimitError(error)
+          ? `Discord rate limited — auto-retry in ${Math.round(waitMs / 1000)}s (do not redeploy)`
+          : `Discord login failed — retry in ${Math.round(waitMs / 1000)}s`,
+      );
+
+      await sleep(waitMs);
+    }
+  }
+}
+
+async function main() {
+  setHealthStatus(false, 'booting');
+  console.log('🚀 Booting WGG Ticket bot...');
+
+  if (process.env.FLY_MACHINE_ID) {
+    console.log(`🛫 Fly machine: ${process.env.FLY_MACHINE_ID}`);
+  }
+
+  try {
+    setHealthStatus(false, 'loading store');
+    console.log('📦 Loading store...');
+    await initStore();
+  } catch (error) {
+    console.error('❌ Failed to load store from Supabase:', error);
+    setHealthStatus(false, `Store error: ${error.message}`);
+    return;
+  }
+
+  const token = (process.env.DISCORD_TOKEN || '').trim();
+  if (!token) {
+    setHealthStatus(false, 'DISCORD_TOKEN is missing or empty');
+    return;
+  }
+
   watchStoreFile();
   startStorePolling();
 
@@ -127,43 +190,5 @@ async function main() {
     console.log('🌐 Using Supabase + Vercel dashboard (legacy dashboard disabled)');
   }
 
-  setHealthStatus(false, 'connecting to Discord');
-  console.log('🔌 Connecting to Discord...');
-  const loginTimeoutMs = 90000;
-  try {
-    await Promise.race([
-      client.login(token),
-      new Promise((_, reject) => {
-        setTimeout(
-          () =>
-            reject(
-              new Error(
-                `Discord login timed out after ${loginTimeoutMs / 1000}s — check token, scale to 1 Fly machine, stop local bot`,
-              ),
-            ),
-          loginTimeoutMs,
-        );
-      }),
-    ]);
-  } catch (loginError) {
-    client.destroy();
-    throw loginError;
-  }
-  console.log('✅ Bot is fully online');
-}
-
-async function verifyDiscordApi(token) {
-  setHealthStatus(false, 'checking Discord API');
-  const res = await fetch('https://discord.com/api/v10/gateway/bot', {
-    headers: { Authorization: `Bot ${token}` },
-    signal: AbortSignal.timeout(15000),
-  });
-
-  if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`Discord API rejected token (${res.status}): ${body.slice(0, 120)}`);
-  }
-
-  const data = await res.json();
-  console.log(`🌐 Discord API OK — ${data.shards} shard(s), session start limit ${data.session_start_limit.remaining}/${data.session_start_limit.max}`);
+  await connectWithRetry(token);
 }
