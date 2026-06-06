@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { randomUUID } = require('crypto');
-const { isSupabaseEnabled } = require('./supabaseClient');
+const { isSupabaseEnabled, validateServiceRoleKey } = require('./supabaseClient');
 const {
   fetchStoreFromSupabase,
   incrementTicketCounterSupabase,
@@ -49,6 +49,7 @@ function saveStore(data) {
 
 async function initStore() {
   if (isSupabaseEnabled()) {
+    validateServiceRoleKey();
     const timeoutMs = 20000;
     cache = await Promise.race([
       fetchStoreFromSupabase(),
