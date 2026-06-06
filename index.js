@@ -32,9 +32,15 @@ if (missingEnv.length > 0) {
 }
 
 async function main() {
-  setHealthStatus(true, 'booting');
+  setHealthStatus(false, 'booting');
 
-  await initStore();
+  try {
+    await initStore();
+  } catch (error) {
+    console.error('❌ Failed to load store from Supabase:', error);
+    setHealthStatus(false, `Store error: ${error.message}`);
+    return;
+  }
 
   const client = new Client({
     intents: [
@@ -90,4 +96,5 @@ async function main() {
 
   await client.login(process.env.DISCORD_TOKEN);
   setHealthStatus(true, 'online');
+  console.log('✅ Bot is fully online');
 }

@@ -1,30 +1,37 @@
 const http = require('http');
 
-let status = { ok: true, message: 'starting', uptime: 0 };
+let status = { ready: false, message: 'starting' };
 
 /**
- * @param {boolean} ok
+ * @param {boolean} ready
  * @param {string} message
  */
-function setHealthStatus(ok, message) {
-  status = { ok, message, uptime: process.uptime() };
+function setHealthStatus(ready, message) {
+  status = { ready, message };
 }
 
 /**
- * Minimal HTTP server for Fly.io health checks.
- * Starts immediately so Fly doesn't timeout before the bot finishes booting.
+ * Fly.io liveness probe — always return 200 so the machine stays up while booting.
+ * Use /ready for actual readiness (bot connected).
  */
 function startHealthServer(port = Number(process.env.PORT) || 8080) {
   const server = http.createServer((req, res) => {
+    const body = {
+      service: 'wgg-ticket-bot',
+      message: status.message,
+      ready: status.ready,
+      uptime: process.uptime(),
+    };
+
     if (req.url === '/health' || req.url === '/') {
-      const body = {
-        ok: status.ok,
-        service: 'wgg-ticket-bot',
-        message: status.message,
-        uptime: process.uptime(),
-      };
-      res.writeHead(status.ok ? 200 : 503, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify(body));
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ ok: true, ...body }));
+      return;
+    }
+
+    if (req.url === '/ready') {
+      res.writeHead(status.ready ? 200 : 503, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ ok: status.ready, ...body }));
       return;
     }
 
@@ -34,6 +41,10 @@ function startHealthServer(port = Number(process.env.PORT) || 8080) {
 
   server.listen(port, '0.0.0.0', () => {
     console.log(`💓 Health server listening on :${port}`);
+  });
+
+  server.on('error', (error) => {
+    console.error('Health server error:', error);
   });
 
   return server;
