@@ -131,17 +131,19 @@ async function seedFromJsonStore(jsonStore) {
   });
 
   if (jsonStore.panels?.length) {
-    await supabase.from('panels').upsert(
+    const { error } = await supabase.from('panels').upsert(
       jsonStore.panels.map((panel, index) =>
         mapPanelToDb({ ...panel, sortOrder: index }, guildId),
       ),
     );
+    if (error) throw new Error(`panels upsert failed: ${error.message}`);
   }
 
   if (jsonStore.customCommands?.length) {
-    await supabase.from('custom_commands').upsert(
+    const { error } = await supabase.from('custom_commands').upsert(
       jsonStore.customCommands.map((command) => mapCommandToDb(command, guildId)),
     );
+    if (error) throw new Error(`commands upsert failed: ${error.message}`);
   }
 }
 

@@ -64,20 +64,38 @@ alter table guild_config enable row level security;
 alter table panels enable row level security;
 alter table custom_commands enable row level security;
 
--- Authenticated users can read (dashboard); writes via service role / API routes
+-- Authenticated users can read (dashboard); writes via logged-in API routes
 create policy "Authenticated read guild_config"
   on guild_config for select
   to authenticated
   using (true);
+
+create policy "Authenticated write guild_config"
+  on guild_config for all
+  to authenticated
+  using (true)
+  with check (true);
 
 create policy "Authenticated read panels"
   on panels for select
   to authenticated
   using (true);
 
+create policy "Authenticated write panels"
+  on panels for all
+  to authenticated
+  using (true)
+  with check (true);
+
 create policy "Authenticated read custom_commands"
   on custom_commands for select
   to authenticated
   using (true);
+
+create policy "Authenticated write custom_commands"
+  on custom_commands for all
+  to authenticated
+  using (true)
+  with check (true);
 
 -- Service role bypasses RLS automatically

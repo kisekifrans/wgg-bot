@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient, createServiceClient } from '@/lib/supabase/server';
-import { getDiscordUserId, verifyGuildAccess } from '@/lib/discord';
+import { requireDashboardAuth } from '@/lib/apiAuth';
 import type { StoreData } from '@/lib/types';
 
 function mapPanel(row: Record<string, unknown>) {
@@ -26,43 +25,18 @@ function mapCommand(row: Record<string, unknown>) {
   };
 }
 
-async function requireAuth() {
-  const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return { error: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }) };
-  }
-
-  const discordId = getDiscordUserId(user);
-  if (!discordId) {
-    return { error: NextResponse.json({ error: 'Discord account required' }, { status: 403 }) };
-  }
-
-  const access = await verifyGuildAccess(discordId);
-  if (!access.allowed) {
-    return {
-      error: NextResponse.json({ error: access.reason || 'Access denied' }, { status: 403 }),
-    };
-  }
-
-  return { user, discordId };
-}
-
 export async function GET() {
-  const auth = await requireAuth();
-  if ('error' in auth && auth.error) return auth.error;
+  const auth = await requireDashboardAuth();
+  if ('error' in auth) return auth.error;
 
   const guildId = process.env.GUILD_ID!;
-  const service = createServiceClient();
+  const { supabase } = auth;
 
   const [{ data: config, error: configErr }, { data: panels, error: panelsErr }, { data: commands, error: commandsErr }] =
     await Promise.all([
-      service.from('guild_config').select('ticket_counter').eq('guild_id', guildId).maybeSingle(),
-      service.from('panels').select('*').eq('guild_id', guildId).order('sort_order'),
-      service.from('custom_commands').select('*').eq('guild_id', guildId).order('name'),
+      supabase.from('guild_config').select('ticket_counter').eq('guild_id', guildId).maybeSingle(),
+      supabase.from('panels').select('*').eq('guild_id', guildId).order('sort_order'),
+      supabase.from('custom_commands').select('*').eq('guild_id', guildId).order('name'),
     ]);
 
   const dbError = configErr || panelsErr || commandsErr;
@@ -81,8 +55,8 @@ export async function GET() {
 }
 
 export async function PUT(request: NextRequest) {
-  const auth = await requireAuth();
-  if ('error' in auth && auth.error) return auth.error;
+  const auth = await requireDashboardAuth();
+  if ('error' in auth) return auth.error;
 
   const body = await request.json();
   if (typeof body.ticketCounter !== 'number') {
@@ -90,13 +64,17 @@ export async function PUT(request: NextRequest) {
   }
 
   const guildId = process.env.GUILD_ID!;
-  const service = createServiceClient();
+  const { supabase } = auth;
 
-  await service.from('guild_config').upsert({
+  const { error } = await supabase.from('guild_config').upsert({
     guild_id: guildId,
     ticket_counter: Math.max(0, Math.floor(body.ticketCounter)),
     updated_at: new Date().toISOString(),
   });
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
 
   return NextResponse.json({ ticketCounter: body.ticketCounter });
 }
