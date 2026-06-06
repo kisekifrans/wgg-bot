@@ -3,10 +3,24 @@ const fs = require('fs');
 const path = require('path');
 const { getStore } = require('./store');
 
+/** @type {import('discord.js').Client | null} */
+let clientRef = null;
+
+/** @type {number} */
+let lastRegisterAt = 0;
+
+const REGISTER_COOLDOWN_MS = 5 * 60 * 1000;
+
 /**
  * @param {import('discord.js').Client} client
  */
-async function registerGuildCommands(client) {
+async function registerGuildCommands(client, { force = false } = {}) {
+  const now = Date.now();
+  if (!force && now - lastRegisterAt < REGISTER_COOLDOWN_MS) {
+    return 0;
+  }
+  lastRegisterAt = now;
+
   const commands = [];
   const commandsPath = path.join(__dirname, '../commands');
   const commandFiles = fs.readdirSync(commandsPath).filter((file) => file.endsWith('.js'));
@@ -45,9 +59,6 @@ async function registerGuildCommands(client) {
 /** @type {import('discord.js').Client | null} */
 let clientRef = null;
 
-/**
- * @param {import('discord.js').Client} client
- */
 function setClient(client) {
   clientRef = client;
 }

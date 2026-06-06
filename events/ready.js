@@ -1,6 +1,6 @@
 const { Events } = require('discord.js');
 const { registerGuildCommands, setClient } = require('../utils/registerCommands');
-const { onStoreChange, watchStoreFile, reloadStore } = require('../utils/store');
+const { onStoreChange, watchStoreFile } = require('../utils/store');
 const { setHealthStatus } = require('../utils/health');
 
 module.exports = {
@@ -14,7 +14,6 @@ module.exports = {
 
     watchStoreFile();
     onStoreChange(async () => {
-      reloadStore();
       try {
         const { reloadCommands } = require('../utils/registerCommands');
         await reloadCommands();
@@ -24,7 +23,7 @@ module.exports = {
     });
 
     try {
-      await registerGuildCommands(client);
+      await registerGuildCommands(client, { force: true });
     } catch (error) {
       console.error('❌ Failed to register slash commands:', error);
     }

@@ -68,14 +68,23 @@ async function initStore() {
 async function reloadStore() {
   if (isSupabaseEnabled()) {
     cache = await fetchStoreFromSupabase();
-    if (onChangeCallback) {
-      onChangeCallback();
-    }
     return cache;
   }
 
   cache = null;
   return getStore();
+}
+
+function storeFingerprint(store) {
+  if (!store) {
+    return '';
+  }
+
+  return JSON.stringify({
+    ticketCounter: store.ticketCounter,
+    panels: store.panels,
+    customCommands: store.customCommands,
+  });
 }
 
 function onStoreChange(callback) {
@@ -107,9 +116,9 @@ function startStorePolling(intervalMs = 15000) {
 
   pollTimer = setInterval(async () => {
     try {
-      const previous = JSON.stringify(cache);
+      const previous = storeFingerprint(cache);
       cache = await fetchStoreFromSupabase();
-      if (JSON.stringify(cache) !== previous && onChangeCallback) {
+      if (storeFingerprint(cache) !== previous && onChangeCallback) {
         onChangeCallback();
       }
     } catch (error) {
